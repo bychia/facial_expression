@@ -1,0 +1,69 @@
+<html>
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>Model Diagnostics</title>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script lang="javascript">
+        function syntaxHighlight(json) {
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                var cls = 'number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'key';
+                    } else {
+                        cls = 'string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        function modelUpload(){
+            //on change event
+            form_data = new FormData();
+            if($('#model').prop('files').length > 0)
+            {
+                file =$('#model').prop('files')[0];
+                form_data.append("model",file);
+            }
+
+            $.ajax({
+                url: './unpickle',
+                type: "POST",
+                data: form_data,
+                processData: false,
+                contentType: false,
+                success: function (result) {
+                     $("#model_unpickle").html(syntaxHighlight(JSON.stringify(result, undefined, 4)));
+                }
+            });
+        }
+    </script>
+    <style>
+        code {outline: 0px solid #ccc; padding: 5px; margin: 5px; }
+        .string { color: green; }
+        .number { color: orange;}
+        .boolean { color: blue; }
+        .null { color: magenta; }
+        .key { color: black; }
+
+    </style>
+  </head>
+    <body>
+        <h2><label for="model_unpickle">Cash Application Model Diagnostics:</label></h2>
+            <input type="file" id="model" name="model" onchange="modelUpload()" accept=".pkl">
+        <p></p>
+        <pre id="model_unpickle"></pre>
+    </body>
+</html>
