@@ -15,11 +15,28 @@
                 url: './static/result.json',
                 type: "GET",
                 success: function (result) {
-                     console.log(result);
-                     hostIP = result["HostIP"];
-                     if(result["HostIP"]!=undefined){
-                        var target_image = document.getElementById("image_captured_source");
-                        target_image.src="/static/img_captured.jpg";
+                     Uuid = result["Uuid"];
+                     var target1 = document.getElementById("image_captured_source");
+                     var target2 = document.getElementById("resized_image_captured_source");
+                     var target3 = document.getElementById("link");
+                     var target4 = document.getElementById("expression");
+                     if(Uuid!=undefined){
+                        target1.src="/static/img_captured"+Uuid+".jpg";
+                        target2.src="/static/resized_img_captured"+Uuid+".jpg";
+                        target3.href="/static/img_original"+Uuid+".jpg"
+                        target3.innerHTML = "See Full Picture";
+                     }else{
+                        target1.removeAttribute("src");
+                        target2.removeAttribute("src");
+                        target3.removeAttribute("href");
+                        target3.innerHTML = "";
+                     }
+
+                     Expression = result["Expression"];
+                     if(Expression!=undefined && Expression!=""){
+                        target4.innerHTML = Expression;
+                     }else{
+                        target4.innerHTML = "No face detected";
                      }
                 }
             });
@@ -55,17 +72,38 @@
             left: 338px;
             top: 270px;
         }
+
+        div#image_resized {
+            position: absolute;
+            background: gray;
+            width: 80px;
+            height: 80px;
+            left: 760px;
+            top: 300px;
+        }
+
+       #expression{
+            position: relative;
+            font-size: 1.5rem;
+            font-weight: bold;
+       }
+
     </style>
 
   </head>
     <body >
         <div style="width: 100%; overflow: hidden;">
                 <div id="googleglass"></div>
-                <div id="googleglass_span"> <img /> </div>
+                <div id="googleglass_span"><a id="link" target="full"></a></div>
         </div>
 
         <div id="image_captured">
-            <img id="image_captured_source" src="static/img_captured.jpg" width="120px" height="55px"/>
+            <img id="image_captured_source" width="120px" height="55px"/>
+        </div>
+
+        <div id="image_resized">
+            <img id="resized_image_captured_source" width="80px" height="80px"/><br/>
+            <div id="expression"/>
         </div>
 
         <script>

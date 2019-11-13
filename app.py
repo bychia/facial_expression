@@ -1,17 +1,13 @@
-from io import BytesIO
-from io import BufferedReader
 from flask import Flask, render_template, request, jsonify
 
+from datetime import datetime
 from keras.models import load_model
-from PIL import Image
 import cv2
 import numpy as np
-import face_recognition
-import keras
 import copy
 import os
 import json
-import socket
+
 
 
 app = Flask(__name__)
@@ -55,23 +51,25 @@ def index():
 
 @app.route('/facial-expression', methods=['POST'])
 def facial_expression():
+    now = datetime.now()
+    uuid = now.strftime("%Y%m%d%H%M%S")
     result = {"Expression": ""}
 
     if request.method == 'POST':
         image = request.files['image']
-        image.save(os.path.join(static_dir, "img_original.jpg"))
+        image.save(os.path.join(static_dir, "img_original"+uuid+".jpg"))
 
-        original_image = cv2.imread(os.path.join(static_dir, "img_original.jpg"))
-        cv2.imwrite(os.path.join(static_dir, 'img_captured.jpg'), original_image)
+        original_image = cv2.imread(os.path.join(static_dir, "img_original"+uuid+".jpg"))
+        cv2.imwrite(os.path.join(static_dir, "img_captured"+uuid+".jpg"), original_image)
 
         y = 15
         x = 0
         h = 55
         w = 120
-        captured_image = cv2.imread(os.path.join(static_dir, "img_captured.jpg"))
+        captured_image = cv2.imread(os.path.join(static_dir, "img_captured"+uuid+".jpg"))
         captured_image = cv2.resize(captured_image, (120,88))
         captured_image = captured_image[y:y+h, x:x+w]
-        cv2.imwrite(os.path.join(static_dir, 'img_captured.jpg'), captured_image)
+        cv2.imwrite(os.path.join(static_dir, "img_captured"+uuid+".jpg"), captured_image)
 
         processed_image = copy.copy(original_image)
         processed_image = converted_to_gray(processed_image)
@@ -83,12 +81,13 @@ def facial_expression():
             face_image = processed_image[y:y + h, x:x + w]
             (width, height) = (48, 48)
             face_image = cv2.resize(face_image, (width, height))
-            cv2.imwrite(os.path.join(static_dir, 'resized_img_captured.jpg'), face_image)
-            face_image = cv2.imread(os.path.join(static_dir, 'resized_img_captured.jpg'))
+            cv2.imwrite(os.path.join(static_dir, "resized_img_captured"+uuid+".jpg"), face_image)
+            face_image = cv2.imread(os.path.join(static_dir, "resized_img_captured"+uuid+".jpg"))
             expression = predict_expression(array_from_image(face_image))
-            result = {"Expression": expression, "HostIP": get_host_ip(), "Image": 'resized_img_captured.jpg'}
-            with open(os.path.join(static_dir, 'result.json'), 'w') as f:
-                json.dump(result, f)
+            result = {"Expression": expression, "HostIP": get_host_ip(), "Uuid": uuid}
+            
+        with open(os.path.join(static_dir, 'result.json'), 'w') as f:
+            json.dump(result, f)
         return jsonify(result), 201
 
     return jsonify({'error': 'Not found'}), 404
