@@ -8,8 +8,6 @@ import copy
 import os
 import json
 
-
-
 app = Flask(__name__)
 app.static_url_path = "/static"
 
